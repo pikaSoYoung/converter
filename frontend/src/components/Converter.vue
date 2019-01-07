@@ -45,7 +45,8 @@ export default {
         { value: 'JPY', text: '일본(JPY)' },
         { value: 'PHP', text: '필리핀(PHP)' }
       ],
-      posts: {}
+      posts: {},
+      rmtStr: '송금액'
     }
   },
   created: function () {
@@ -57,7 +58,7 @@ export default {
       this.$http.get(`${baseURI}`).then((result) => {
         this.posts = result.data.quotes
         let selectedOp = `USD${this.selected}`
-        this.rate = this.comma(Number(this.posts[selectedOp]).toFixed(2))
+        this.rate = this.comma(this.fixed(this.posts[selectedOp], 2))
       })
     },
     validation: function (event) {
@@ -65,24 +66,24 @@ export default {
       const reg = new RegExp('^[0-9]+$')
       const res = /[^0-9]/gi
       let numStr = event.target.value
-      numStr.length <= 0 || reg.test(numStr.replace(/,/gi, '')) ? this.errMsg = '' : this.errMsg = '송금액에 숫자만 입력 가능합니다'
+      numStr.length <= 0 || reg.test(this.commaDel(numStr)) ? this.errMsg = '' : this.errMsg = this.errMsgSet(this.rmtStr, 'default')
       event.target.value = this.comma(numStr.replace(res, ''))
       this.rmt = event.target.value
     },
     submitData: function () {
-      console.log('송금액' + this.rmt)
-      let rmtData = this.rmt.replace(/,/gi, '')
-      if (this.chk('송금액', rmtData)) {
-        console.log('결과 : ' + this.chk('송금액', this.rmt))
+      this.rstMsg = ''
+      this.errMsg = ''
+      let rmtData = this.commaDel(this.rmt)
+      if (this.chk(this.rmtStr, rmtData)) {
         const baseURI = 'http://localhost:8080/getData.do'
         let form = new FormData()
         form.append('info', this.posts[`USD${this.selected}`])
         form.append('rmt', rmtData)
         this.$http.post(`${baseURI}`, form).then((result) => {
           if (!result.data.err) {
-            this.rstMsg = `수취금액은 ${this.comma(Number(result.data.msg).toFixed(2))} ${this.selected} 입니다`
+            this.rstMsg = `수취금액은 ${this.comma(this.fixed(result.data.msg, 2))} ${this.selected} 입니다`
           } else {
-            this.errMsg = '올바른 송금액을 입력해주세요.'
+            this.errMsg = this.errMsgSet(this.rmtStr, 'err')
           }
         })
       }
@@ -90,27 +91,45 @@ export default {
     comma: function (num) {
       return num.replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, '$1,')
     },
+    commaDel: function (num) {
+      return num.replace(/,/gi, '')
+    },
+    fixed: function (num, idx) {
+      return Number(num).toFixed(idx)
+    },
     chk: function (key, value) {
       if (!value || value.length <= 0) {
-        this.errMsg = `${key}을 입력하지 않았습니다`
+        this.errMsg = this.errMsgSet(key, 'null')
+        return false
+      } else if (value > 10000) {
+        this.errMsg = this.errMsgSet(key, 'err')
         return false
       } else {
         return true
       }
+    },
+    errMsgSet: function (key, state) {
+      let msg = ''
+      switch (state) {
+        case 'null' : {
+          msg = `${key}을 입력하지 않았습니다.`
+          break
+        }
+        case 'err' : {
+          msg = `${key}이 올바르지 않습니다.`
+          break
+        }
+        default : {
+          msg = `${key}에 숫자만 입력 가능합니다.`
+          break
+        }
+      }
+      return msg
     }
   }
 }
 
 </script>
-<!--
-  const baseURI = 'http://localhost:8080/getData.do'
-      let form = new FormData()
-      form.append('info', this.posts[`USD${this.selected}`])
-      form.append('rmt', this.rmt.replace(/,/gi, ''))
-      this.$http.post(`${baseURI}`, form).then((result) => {
-        this.rstMsg = `수취금액은 ${this.comma(Number(result.data.msg).toFixed(2))} ${this.selected} 입니다`
-      })
--->
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1 {
