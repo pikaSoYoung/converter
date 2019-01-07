@@ -14,4 +14,11 @@ public class ConverterService {
         
         return usd*rmt;
     }
+
+    public boolean chk(String rmt){
+        //빈문자열 체크
+        if(rmt.equals("")){ return false; }
+        //숫자외 다른 문자열 포함여부 체크
+        return rmt.matches("^[0-9]*$");
+    }
 }    

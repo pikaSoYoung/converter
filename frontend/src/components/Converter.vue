@@ -15,7 +15,7 @@
         <span class="tlt">환율</span>: {{rate}} {{selected}}/USD
       </li>
       <li>
-         <span class="tlt">송금액</span>: <input type="text" @keyup="validation" name="rmt"> USD
+         <span class="tlt">송금액</span>: <input type="text" @input="validation" v-model="rmt"> USD
       </li>
       <li>
        <button type="button" @click="submitData" class="sbmBtn">submit</button>
@@ -39,6 +39,7 @@ export default {
       rate: 0,
       rstMsg: '',
       errMsg: '',
+      rmt: '',
       options: [
         { value: 'KRW', text: '한국(KRW)' },
         { value: 'JPY', text: '일본(JPY)' },
@@ -60,17 +61,30 @@ export default {
       })
     },
     validation: function (event) {
+      this.rstMsg = ''
       const reg = new RegExp('^[0-9]+$')
       const res = /[^0-9]/gi
       let numStr = event.target.value
-      reg.test(numStr.replace(/,/gi, '')) ? this.errMsg = '' : this.errMsg = '수취 금액에 숫자만 입력 가능합니다'
-      document.querySelector('input[name=rmt]').value = this.comma(numStr.replace(res, ''))
+      numStr.length <= 0 || reg.test(numStr.replace(/,/gi, '')) ? this.errMsg = '' : this.errMsg = '송금액에 숫자만 입력 가능합니다'
+      event.target.value = this.comma(numStr.replace(res, ''))
+      this.rmt = event.target.value
     },
     submitData: function () {
-      let rmt = document.querySelector('input[name=rmt]').value
-      console.log(rmt)
-      if (!this.chk('수취금액', rmt)) {
-        return false
+      console.log('송금액' + this.rmt)
+      let rmtData = this.rmt.replace(/,/gi, '')
+      if (this.chk('송금액', rmtData)) {
+        console.log('결과 : ' + this.chk('송금액', this.rmt))
+        const baseURI = 'http://localhost:8080/getData.do'
+        let form = new FormData()
+        form.append('info', this.posts[`USD${this.selected}`])
+        form.append('rmt', rmtData)
+        this.$http.post(`${baseURI}`, form).then((result) => {
+          if (!result.data.err) {
+            this.rstMsg = `수취금액은 ${this.comma(Number(result.data.msg).toFixed(2))} ${this.selected} 입니다`
+          } else {
+            this.errMsg = '올바른 송금액을 입력해주세요.'
+          }
+        })
       }
     },
     comma: function (num) {
@@ -78,7 +92,7 @@ export default {
     },
     chk: function (key, value) {
       if (!value || value.length <= 0) {
-        this.errMsg = `${key}값을 입력하지 않았습니다`
+        this.errMsg = `${key}을 입력하지 않았습니다`
         return false
       } else {
         return true
