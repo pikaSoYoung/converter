@@ -23,3 +23,9 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# packages #
+ package.json
+ package-lock.json
+ settings.json
+ launch.json
