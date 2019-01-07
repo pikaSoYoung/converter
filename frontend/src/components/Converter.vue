@@ -3,26 +3,29 @@
     <h1>환율 계산</h1>
     <ul>
       <li>
-        <span>송금국가 : 미국 (USD)</span>
+        <span class="tlt">송금국가</span>: 미국 (USD)
       </li>
       <li>
-        <span>수취국가 : </span>
+        <span class="tlt">수취국가 </span>:
         <select v-model="selected" @change="greet">
             <option v-for="option in options" :key="option.id" v-bind:value="option.value">{{option.text}}</option>
         </select>
       </li>
       <li>
-        <span>환율 : {{rate}} {{selected}}/USD</span>
+        <span class="tlt">환율</span>: {{rate}} {{selected}}/USD
       </li>
       <li>
-         <span>송금액 : </span><input type="text" name="rmt" @keyup="validation" v-model="rmt"> USD
+         <span class="tlt">송금액</span>: <input type="text" @keyup="validation" name="rmt"> USD
       </li>
       <li>
-       <button type="button" id="calcBtn" @click="submitData">변환</button>
+       <button type="button" @click="submitData" class="sbmBtn">submit</button>
       </li>
     </ul>
-    <div>
-      <p>{{rstMsg}}</p>
+    <div class="errMsg">
+      {{errMsg}}
+    </div>
+    <div class="rstMsg">
+      {{rstMsg}}
     </div>
   </div>
 </template>
@@ -34,12 +37,12 @@ export default {
     return {
       selected: 'KRW',
       rate: 0,
-      rmt: '',
       rstMsg: '',
+      errMsg: '',
       options: [
-        { value: 'KRW', text: '한국' },
-        { value: 'JPY', text: '일본' },
-        { value: 'PHP', text: '필리핀' }
+        { value: 'KRW', text: '한국(KRW)' },
+        { value: 'JPY', text: '일본(JPY)' },
+        { value: 'PHP', text: '필리핀(PHP)' }
       ],
       posts: {}
     }
@@ -57,32 +60,49 @@ export default {
       })
     },
     validation: function (event) {
-      const res = /[^0-9]/g
-      this.rmt = this.comma(event.target.value.replace(res, ''))
+      const reg = new RegExp('^[0-9]+$')
+      const res = /[^0-9]/gi
+      let numStr = event.target.value
+      reg.test(numStr.replace(/,/gi, '')) ? this.errMsg = '' : this.errMsg = '수취 금액에 숫자만 입력 가능합니다'
+      document.querySelector('input[name=rmt]').value = this.comma(numStr.replace(res, ''))
     },
     submitData: function () {
-      const baseURI = 'http://localhost:8080/getData.do'
-      const res = /[^0-9]/g
-      let form = new FormData()
-      form.append('info', this.posts[`USD${this.selected}`])
-      form.append('rmt', this.rmt.replace(res, ''))
-      this.$http.post(`${baseURI}`, form).then((result) => {
-        console.log()
-        this.rstMsg = `수취금액은 ${this.comma(Number(result.data.msg).toFixed(2))} ${this.selected} 입니다`
-      })
+      let rmt = document.querySelector('input[name=rmt]').value
+      console.log(rmt)
+      if (!this.chk('수취금액', rmt)) {
+        return false
+      }
     },
     comma: function (num) {
       return num.replace(/(\d)(?=(\d{3})+(?:\.\d+)?$)/g, '$1,')
+    },
+    chk: function (key, value) {
+      if (!value || value.length <= 0) {
+        this.errMsg = `${key}값을 입력하지 않았습니다`
+        return false
+      } else {
+        return true
+      }
     }
   }
 }
 
 </script>
-
+<!--
+  const baseURI = 'http://localhost:8080/getData.do'
+      let form = new FormData()
+      form.append('info', this.posts[`USD${this.selected}`])
+      form.append('rmt', this.rmt.replace(/,/gi, ''))
+      this.$http.post(`${baseURI}`, form).then((result) => {
+        this.rstMsg = `수취금액은 ${this.comma(Number(result.data.msg).toFixed(2))} ${this.selected} 입니다`
+      })
+-->
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1, h2 {
+h1 {
   font-weight: normal;
+  font-size: 25px;
+  margin-top: 5px;
 }
 ul {
   list-style-type: none;
@@ -95,5 +115,27 @@ li {
 }
 a {
   color: #42b983;
+}
+button.sbmBtn {
+  border: 1px solid #363650;
+  background-color: #133571;
+  border-radius: 3px;
+  width: 100%;
+  line-height: 40px;
+  text-align: center;
+  color: #fff;
+  font-size: 16px;
+}
+.errMsg {
+  margin-top: 20px;
+  line-height: 160%;
+  color: #f64d86;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+.tlt {
+  width: 25%;
+  display: inline-block;
 }
 </style>
