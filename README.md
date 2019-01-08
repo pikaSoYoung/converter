@@ -1,10 +1,12 @@
 # converter : 환율계산
 VSCODE &amp; Git &amp; Spring Boot &amp; Vuejs &amp; Wabpack &amp; thymeleaf 
+<br>default root path : localhost:8080/
 <div>
 <img src="https://user-images.githubusercontent.com/24488977/50805473-e5bbdf00-1335-11e9-9249-0e16c5c83bc5.PNG"></img>
 </div>
-
+<br>
 >환경 구성
+<br>
 <pre>
   <code>
 spring-boot : 2.1.1.RELEAS
@@ -15,4 +17,4 @@ node : 6.0
 npm : 3.0.0
   </code>
 </pre>
-
+<br>
