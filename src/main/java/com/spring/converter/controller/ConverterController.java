@@ -32,8 +32,8 @@ public class ConverterController {
     public @ResponseBody String getInfo(){
         //JSON 데이터 전송 받을 uri    
         URI uri = UriComponentsBuilder.newInstance().scheme("http").host("www.apilayer.net")
-                    .path("/api/live").queryParam("access_key","a397fa7d63626b279faabb900f9e3ed9").build().toUri();
-        //"http://www.apilayer.net/api/live?access_key=a397fa7d63626b279faabb900f9e3ed9"; url
+                    .path("/api/live").queryParam("access_key","").build().toUri();
+        //"http://www.apilayer.net/api/live?access_key="; url
         RestTemplate restTpl = new RestTemplate();
         String responseStr = restTpl.getForObject(uri,String.class);
        return responseStr;
